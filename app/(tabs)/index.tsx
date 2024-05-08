@@ -1,70 +1,127 @@
-import { Image, StyleSheet, Platform } from 'react-native';
+//Importação do useState
+import React, { useState } from "react";
+//Importação dos componentes padrões do React Native
+import {
+  View,
+  TextInput,
+  Pressable,
+  Text,
+  StyleSheet,
+  Image,
+} from "react-native";
+//Importação da API axios
+import axios from "axios";
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+const App = () => {
+  //Variável CEP com o valor em branco que mudara quando você digitar algo no Input
+  const [cep, setCep] = useState("");
+  //Variável ADDRESS com o valor nulo que mudará quando a função for executada
+  const [address, setAddress] = useState(null);
 
-export default function HomeScreen() {
+  //A função fetchAddres é uma função async. Async é uma palavra chave que define se a função é assíncrona ou não
+  const fetchAddress = async () => {
+    //Try vai funcionar com um IF e ELSE
+    //Onde primeiramente ele vai tentar(try) executar a função response
+    //E caso não de certo ele usa o catch para pegar o erro e imprimi-lo no console
+    try {
+      //Essa função response tem um await. Await espera a resposta quando a função for executada, porém o código continua rodando pelo fato da função ser assíncrona
+      const response = await axios.get(`https://viacep.com.br/ws/${cep}/json/`);
+      setAddress(response.data);
+    } catch (error) {
+      console.error("Error fetching address:", error);
+      setAddress(null);
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
+    <View style={styles.container}>
+      <View style={styles.container2}>
+        <Image source={require("./Mapa.png")} />
+        <Text style={styles.textinho}>Digite o CEP:</Text>
+        {/* Neste Input o valor vai ser CEP, ou seja qualquer coisa que for inserida aqui sera definida como valor da variável CEP(através do onChangeText) */}
+        <TextInput
+          value={cep}
+          onChangeText={setCep}
+          keyboardType="numeric"
+          style={styles.inputs}
         />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Welcome!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({ ios: 'cmd + d', android: 'cmd + m' })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          Tap the Explore tab to learn more about what's included in this starter app.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          When you're ready, run{' '}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+        {/* Quando esse Pressable for pressionado a função fetchAddress vai ser executada */}
+        <Pressable onPress={fetchAddress}>
+          <Text style={styles.button}>Buscar Endereço</Text>
+        </Pressable>
+        {address && (
+          //É a função vai ser impressa nessa View
+          <View style={styles.resposta}>
+            <Text style={styles.results}>CEP: {address.cep}</Text>
+            <Text style={styles.results}>Rua: {address.logradouro}</Text>
+            <Text style={styles.results}>Bairro: {address.bairro}</Text>
+            <Text style={styles.results}>Cidade: {address.localidade}</Text>
+            <Text style={styles.results}>Estado: {address.uf}</Text>
+          </View>
+        )}
+      </View>
+    </View>
   );
-}
+};
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
+  container: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8F8FF",
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+
+  container2: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 200,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+
+  inputs: {
+    marginTop: 5,
+    padding: 10,
+    borderRadius: 5,
+    width: 300,
+    borderWidth: 2,
+    borderColor: "#DC143C",
+    backgroundColor: "transparent",
+    color: "#DC143C",
+  },
+
+  textinho: {
+    fontWeight: "bold",
+    marginTop: 25,
+    marginRight: 205,
+    paddingRight: 10,
+    paddingLeft: 10,
+    color: "#DC143C",
+  },
+
+  button: {
+    marginTop: 30,
+    textAlign: "center",
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+    backgroundColor: "#DC143C",
+    width: 175,
+    height: 45,
+    borderRadius: 10,
+  },
+
+  resposta: {
+    marginTop: 500,
+    position: "absolute",
+    backgroundColor: "#DC143C",
+    borderRadius: 10,
+  },
+
+  results: {
+    padding: 10,
+    color: "#FFFFFF",
+    fontWeight: "bold",
   },
 });
+
+export default App;
